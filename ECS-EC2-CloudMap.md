@@ -1,23 +1,25 @@
 ### ECS - EC2 - Cloud Map
 
 ```mermaid
-flowchart LR
-    subgraph ECS["ECS - Elastic Container Service"]
+flowchart TB
+    subgraph ECS["Elastic Container Service (ECS)"]
         Service(Services)
         Cluster(Cluster)
         Task(Task)
-        subgraph ECR["ECR - Elastic Container Registry"]
+        subgraph ECR["Elastic Container Registry (ECR)"]
             Repository(Repository)
             Image(Images)
             Repository -- has --> Image
         end
         subgraph LaunchType[Launch Type]
+            direction TB
             Fargate(Fargate)
             EC2a(EC2)
+            External(External)@{ shape: braces }
         end
 
         Cluster --> |groups| Service
-        Task -- pulls image from --> ECR
+        Task ---> |pulls image from|ECR
         Service --using--> LaunchType
         LaunchType -->|runs instances of a| Task
     end
@@ -26,27 +28,27 @@ flowchart LR
         EFS(EFS)
     end
 
-    subgraph EC2["EC2 Components"]
-        subgraph LoadBalancing["Load Balancing Components"]
+    subgraph EC2["EC2"]
+        subgraph LoadBalancing["Load Balancing"]
             ALB(Application Load Balancer)
             TG(Target Group)
             L(Listener)
             LR(Listener Rule)
 
-            ALB -- has --> L
             LR -- for --> L
+            ALB -- has --> L
             LR -- routes to --> TG
             TG -- has --> HealthCheck
         end
-        subgraph Network["Network and Security"]
+        subgraph Network["Network & Security"]
             SG(Security Group)
             %%SG -- has --> Inbound
             %%SG -- has --> Outbound
         end
-        ALB -- belongs to --> SG
+        ALB ----> |belongs to| SG
     end
 
-    subgraph CloudMap["Cloud Map - Service Discovery"]
+    subgraph CloudMap["Cloud Map / Service Discovery"]
         CMN(Namespace)
         CMS(Service)
         CMI(Service Instance)
@@ -61,11 +63,11 @@ flowchart LR
     end
 
     %% Cross-subgraph connections
-    Task --> |registers to| CMS
+    Task ----> |mounts| EFS
     Task --> |registers to| TG
-    Task --> |mounts| EFS
     Task --> |belongs to| SG
+    Task --> |registers to| CMS
 
-    CMN -- creates --> HostedZone
-    CMI -- creates --> Record
+    CMN ---> |creates| HostedZone
+    CMI ---> |creates| Record
 ```
